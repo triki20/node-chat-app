@@ -13,33 +13,64 @@ var app = express();
 var server = http.createServer(app)
 var io = socketIO(server);
 var users = new Users();
-var roomArray = [];
+
 
 app.use(express.static(publicPath));
 
 io.on('connection', (socket) => {
     console.log('New user connected');
 
+    var roomList = users.getRoomList();
+    socket.emit('chatRoomList', roomList);
+
     socket.on('join', (params, callback) => {
-        if(!isRealString(params.name) || !isRealString(params.room)){
-           return callback('Name and Room name are required.');
+
+    var newRoom = params.room;
+    var activeRoom = params.activeRoom;
+
+        if(params.activeRoom !== undefined && params.room.length === 0){
+
+        if(!isRealString(params.name)){
+            return callback('Name and Room name are required.');
         }else{
             if(uniqueUserName(params.room, params.name, users.users)){
                 return callback('User name has been taken.');
             }
         }
 
-        var lowerCase = params.room.toLowerCase();
+     socket.join(activeRoom);
+     users.removeUser(socket.id);
+     users.addUser(socket.id, params.name, activeRoom);
+    
+     io.to(activeRoom).emit('updateUserList', users.getUserList(activeRoom));
+     socket.emit('newMessage',generateMessage('Admin',`Hello ${params.name} Wellcom to ${activeRoom} chat`));
+     socket.broadcast.to(activeRoom).emit('newMessage',generateMessage('Admin',`${params.name} has joined.`));
+    
+     callback();
+    }else if(params.activeRoom === undefined && params.room.length > 0 || params.activeRoom !== undefined && params.room.length > 0){
 
-        socket.join(lowerCase);
-        users.removeUser(socket.id);
-        users.addUser(socket.id, params.name, lowerCase);
-
-        io.to(lowerCase).emit('updateUserList', users.getUserList(lowerCase));
-        socket.emit('newMessage',generateMessage('Admin',`Hello ${params.name} Wellcom to ${lowerCase} chat`));
-        socket.broadcast.to(lowerCase).emit('newMessage',generateMessage('Admin',`${params.name} has joined.`));
-
-        callback();
+            if(!isRealString(params.name) || !isRealString(params.room)){
+                return callback('Name and Room name are required.');
+             }else if(params.room === params.activeRoom){
+                 return callback('Room name has been taken.');
+             }else{
+                 if(uniqueUserName(params.room, params.name, users.users)){
+                     return callback('User name has been taken.');
+                 }
+             }
+     
+             var lowerCase = newRoom.toLowerCase();
+     
+             socket.join(lowerCase);
+             users.removeUser(socket.id);
+             users.addUser(socket.id, params.name, lowerCase);
+     
+             io.to(lowerCase).emit('updateUserList', users.getUserList(lowerCase));
+             socket.emit('newMessage',generateMessage('Admin',`Hello ${params.name} Wellcom to ${lowerCase} chat`));
+             socket.broadcast.to(lowerCase).emit('newMessage',generateMessage('Admin',`${params.name} has joined.`));
+     
+             callback();
+        }
     });
 
     socket.on('createMessage', (message, callback) => {

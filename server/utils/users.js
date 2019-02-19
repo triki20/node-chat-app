@@ -13,7 +13,6 @@ class Users {
         if(user){
             this.users = this.users.filter((user) => user.id !== id);
         }
-
         return user;
     };
 
@@ -25,6 +24,12 @@ class Users {
         var users = this.users.filter((user) => user.room === room);
         var nameArray = users.map((user) => user.name);
         return nameArray;
+    };
+
+    getRoomList(){
+       var roomArray = this.users.map((user) => user.room);
+       var roomList = roomArray.filter((v,i) => roomArray.indexOf(v) === i);
+        return roomList;
     };
 };
 
