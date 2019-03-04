@@ -43,7 +43,7 @@ io.on('connection', (socket) => {
      users.addUser(socket.id, params.name, activeRoom);
     
      io.to(activeRoom).emit('updateUserList', users.getUserList(activeRoom));
-     socket.emit('newMessage',generateMessage('Admin',`Hello ${params.name} Wellcom to ${activeRoom} chat`));
+     socket.emit('newMessage',generateMessage('Admin',`Hello ${params.name} Welcome to ${activeRoom} chat`));
      socket.broadcast.to(activeRoom).emit('newMessage',generateMessage('Admin',`${params.name} has joined.`));
     
      callback();
@@ -66,7 +66,7 @@ io.on('connection', (socket) => {
              users.addUser(socket.id, params.name, lowerCase);
      
              io.to(lowerCase).emit('updateUserList', users.getUserList(lowerCase));
-             socket.emit('newMessage',generateMessage('Admin',`Hello ${params.name} Wellcom to ${lowerCase} chat`));
+             socket.emit('newMessage',generateMessage('Admin',`Hello ${params.name} Welcome to ${lowerCase} chat`));
              socket.broadcast.to(lowerCase).emit('newMessage',generateMessage('Admin',`${params.name} has joined.`));
      
              callback();
